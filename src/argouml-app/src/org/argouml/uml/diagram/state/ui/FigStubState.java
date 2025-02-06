@@ -232,19 +232,20 @@ public class FigStubState extends FigStateVertex {
     @Override
     protected void setStandardBounds(int theX, int theY, int theW, int theH) {
         Rectangle oldBounds = getBounds();
-        theW = 60;
+        int newWidth = 60; // Introduced a new variable instead of reusing theW
 
-        referenceFig.setBounds(theX, theY, theW,
+        referenceFig.setBounds(theX, theY, newWidth,
                 referenceFig.getBounds().height);
         stubline.setShape(theX, theY,
-                theX + theW, theY);
+                theX + newWidth, theY);
 
-        getBigPort().setBounds(theX, theY, theW, theH);
+        getBigPort().setBounds(theX, theY, newWidth, theH);
 
         calcBounds(); //_x = x; _y = y; _w = w; _h = h;
         updateEdges();
         firePropChange("bounds", oldBounds, getBounds());
     }
+
 
     ////////////////////////////////////////////////////////////////
     // event processing
