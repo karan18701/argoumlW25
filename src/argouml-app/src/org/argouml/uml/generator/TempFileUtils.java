@@ -161,7 +161,11 @@ public class TempFileUtils {
         try {
             traverseDir(dir, new FileAction() {
                 public void act(File f) {
-                    f.delete();
+                    if (f.delete()) {
+                    System.out.println("Deleted file: " + f.getAbsolutePath());
+                    } else {
+                        System.err.println("Failed to delete file: " + f.getAbsolutePath());
+                    }
                 }
             });
         } catch (IOException ioe) {
