@@ -196,10 +196,10 @@ public class ToDoList extends Observable implements Runnable {
             forceValidityCheck(removes);
             removes.clear();
             try {
-                Thread.sleep(SLEEP_SECONDS * 1000);
-            } catch (InterruptedException ignore) {
-                LOG.log(Level.SEVERE, "InterruptedException!!!", ignore);
-            }
+    Thread.sleep((long) SLEEP_SECONDS * 1000);
+} catch (InterruptedException ignore) {
+    LOG.log(Level.SEVERE, "InterruptedException!!!", ignore);
+}
         }
     }
 
