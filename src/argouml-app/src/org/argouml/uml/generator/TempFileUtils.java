@@ -162,9 +162,9 @@ public class TempFileUtils {
             traverseDir(dir, new FileAction() {
                 public void act(File f) {
                     if (f.delete()) {
-                    System.out.println("Deleted file: " + f.getAbsolutePath());
+                        LOGGER.info("Deleted file: " + f.getAbsolutePath());
                     } else {
-                        System.err.println("Failed to delete file: " + f.getAbsolutePath());
+                        LOGGER.warning("Failed to delete file: " + f.getAbsolutePath());
                     }
                 }
             });
