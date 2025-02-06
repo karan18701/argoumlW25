@@ -38,7 +38,9 @@ This project is the virtual project that includes all core subprojects.
   </description>
 
  <properties>
-  <sonar.organization>grestipher</sonar.organization>
+  <!--  Used in parent to deploy site on github.  -->
+  <github.site.repositoryName>argouml</github.site.repositoryName>
+  <sonar.organization>abhigyan-singh2001</sonar.organization>
   <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 </properties>
 
