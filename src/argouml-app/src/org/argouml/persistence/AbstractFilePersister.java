@@ -1,4 +1,4 @@
-    /* $Id$
+/* $Id$
  *****************************************************************************
  * Copyright (c) 2009-2012 Contributors - see below
  * All rights reserved. This program and the accompanying materials
@@ -165,27 +165,23 @@ public abstract class AbstractFilePersister extends FileFilter
      * @throws IOException if there is some problems with the files.
      * @throws FileNotFoundException if any of the files cannot be found.
      */
-    protected File copyFile(File src, File dest) throws FileNotFoundException, IOException {
-    FileInputStream fis = new FileInputStream(src);
-    FileOutputStream fos = new FileOutputStream(dest);
-    byte[] buf = new byte[1024];
-    int i;
-    
-    while ((i = fis.read(buf)) != -1) {
-        fos.write(buf, 0, i);
+    protected File copyFile(File src, File dest)
+        throws FileNotFoundException, IOException {
+
+        FileInputStream fis  = new FileInputStream(src);
+        FileOutputStream fos = new FileOutputStream(dest);
+        byte[] buf = new byte[1024];
+        int i = 0;
+        while ((i = fis.read(buf)) != -1) {
+            fos.write(buf, 0, i);
+        }
+        fis.close();
+        fos.close();
+
+        dest.setLastModified(src.lastModified());
+
+        return dest;
     }
-    
-    fis.close();
-    fos.close();
-
-    // Handle setLastModified result
-    if (!dest.setLastModified(src.lastModified())) {
-        LOG.warning("Failed to set last modified time for: " + dest.getAbsolutePath());
-    }
-
-    return dest;
-}
-
 
 
 
