@@ -250,13 +250,10 @@ public final class ArgoEventPump {
     private void fireDiagramAppearanceEventInternal(
             final ArgoDiagramAppearanceEvent event,
             final ArgoDiagramAppearanceEventListener listener) {
-        switch (event.getEventType()) {
-        case ArgoEventTypes.DIAGRAM_FONT_CHANGED :
+        if (event.getEventType() == ArgoEventTypes.DIAGRAM_FONT_CHANGED) {
             listener.diagramFontChanged(event);
-            break;
-        default :
-            LOG.log(Level.SEVERE, "Invalid event:" + event.getEventType());
-            break;
+        } else {
+            LOG.log(Level.SEVERE, "Invalid event: " + event.getEventType());
         }
     }
 
