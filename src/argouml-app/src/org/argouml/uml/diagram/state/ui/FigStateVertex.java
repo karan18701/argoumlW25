@@ -182,7 +182,7 @@ public abstract class FigStateVertex extends FigNodeModelElement {
         List<Point> ret = new ArrayList<Point>();
         int cx = getBigPort().getCenter().x;
         int cy = getBigPort().getCenter().y;
-        double radius = getBigPort().getWidth() / 2 + 1;
+        double radius = getBigPort().getWidth() / 2.0 + 1;
         final double pi2 = Math.PI * 2;
         for (int i = 0; i < CIRCLE_POINTS; i++) {
             int x = (int) (cx + Math.cos(pi2 * i / CIRCLE_POINTS) * radius);
