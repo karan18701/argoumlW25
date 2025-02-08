@@ -117,20 +117,20 @@ public abstract class AbstractFilePersister extends FileFilter
      * @throws FileNotFoundException if file not found
      * @throws IOException if error reading or writing
      */
-    protected File createTempFile(File file)
-        throws FileNotFoundException, IOException {
-        File tempFile = new File(file.getAbsolutePath() + "#");
+    protected File createTempFile(File file) 
+    throws FileNotFoundException, IOException {
+    File tempFile = new File(file.getAbsolutePath() + "#");
 
-        if (tempFile.exists()) {
-            tempFile.delete();
-        }
-
-        if (file.exists()) {
-            copyFile(file, tempFile);
-        }
-
-        return tempFile;
+    if (tempFile.exists() && !tempFile.delete()) {
+        throw new IOException("Failed to delete temporary file: " + tempFile.getAbsolutePath());
     }
+
+    if (file.exists()) {
+        copyFile(file, tempFile);
+    }
+
+    return tempFile;
+}
 
     /**
      * Saving in a safe way means: Retain the previous project
