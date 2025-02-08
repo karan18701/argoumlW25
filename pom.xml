@@ -40,8 +40,6 @@ This project is the virtual project that includes all core subprojects.
   <properties>
     <!-- Used in parent to deploy site on github. -->
     <github.site.repositoryName>argouml</github.site.repositoryName>
-   <sonar.organization>heli-shah</sonar.organization>
-  <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
   <scm>
     <url>${github.site.org}/${github.site.repositoryName}</url>
