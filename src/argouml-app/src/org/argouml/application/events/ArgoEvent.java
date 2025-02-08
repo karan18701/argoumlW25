@@ -92,6 +92,7 @@ public abstract class ArgoEvent extends EventObject
      *
      * @return the formatted information.
      */
+    @Override
     public String toString() {
         return "{" + getClass().getName() + ":" + eventType
             + "(" + getEventStartRange() + "-" + getEventEndRange() + ")"
