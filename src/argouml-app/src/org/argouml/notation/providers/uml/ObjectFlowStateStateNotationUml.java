@@ -141,7 +141,7 @@ public class ObjectFlowStateStateNotationUml extends
                     Iterator i = states.iterator();
                     while (i.hasNext()) {
                         Object state = i.next();
-                        if (Model.getFacade().getName(state) == nextToken) {
+                        if (Model.getFacade().getName(state).equals(nextToken)) {
                             found = true;
                             statesToBeRemoved.remove(state);
                         }

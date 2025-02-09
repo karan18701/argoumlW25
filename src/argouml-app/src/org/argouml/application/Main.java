@@ -127,7 +127,7 @@ public class Main {
     private static final String DEFAULT_MODEL_IMPLEMENTATION =
         "org.argouml.model.mdr.MDRModelImplementation";
 
-    private static List<Runnable> postLoadActions = new ArrayList<Runnable>();
+    private static List<Runnable> postLoadActions = new ArrayList<>();
 
     private static boolean doSplash = true;
 
@@ -676,7 +676,7 @@ public class Main {
             }
 
 
-            if (o == null || !(o instanceof CommandLineInterface)) {
+            if (!(o instanceof CommandLineInterface)) {
                 System.out.println(commandName
                         + " is not a command - skipping.");
                 continue;

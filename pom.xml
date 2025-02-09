@@ -41,7 +41,6 @@ This project is the virtual project that includes all core subprojects.
     <!-- Used in parent to deploy site on github. -->
     <github.site.repositoryName>argouml</github.site.repositoryName>
   </properties>
-
   <scm>
     <url>${github.site.org}/${github.site.repositoryName}</url>
     <connection>scm:git:${github.site.org}/${github.site.repositoryName}.git</connection>
