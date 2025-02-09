@@ -676,7 +676,7 @@ public class Main {
             }
 
 
-            if (o == null || !(o instanceof CommandLineInterface)) {
+            if (!(o instanceof CommandLineInterface)) {
                 System.out.println(commandName
                         + " is not a command - skipping.");
                 continue;
