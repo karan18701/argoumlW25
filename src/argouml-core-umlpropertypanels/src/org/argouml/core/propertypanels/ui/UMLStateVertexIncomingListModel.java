@@ -42,12 +42,6 @@ import java.util.ArrayList;
 
 import org.argouml.model.Model;
 
-/**
- * Listmodel for the incoming transitions of a Statevertex.
- *
- * @since Dec 14, 2002
- * @author jaap.branderhorst@xs4all.nl
- */
 class UMLStateVertexIncomingListModel extends UMLModelElementListModel {
 
     /**
@@ -58,33 +52,30 @@ class UMLStateVertexIncomingListModel extends UMLModelElementListModel {
         setTarget(modelElement);
     }
 
+    /**
+     * Helper method to get filtered incoming transitions.
+     */
+    private List getFilteredIncomings() {
+        List c = new ArrayList(Model.getFacade().getIncomings(getTarget()));
+        if (Model.getFacade().isAState(getTarget())) {
+            List i = new ArrayList(Model.getFacade().getInternalTransitions(getTarget()));
+            c.removeAll(i);
+        }
+        return c;
+    }
+
     /*
      * @see org.argouml.uml.ui.UMLModelElementListModel2#buildModelList()
      */
     protected void buildModelList() {
-        ArrayList c =
-            new ArrayList(Model.getFacade().getIncomings(getTarget()));
-        if (Model.getFacade().isAState(getTarget())) {
-            ArrayList i =
-                new ArrayList(
-                        Model.getFacade().getInternalTransitions(getTarget()));
-            c.removeAll(i);
-        }
-        setAllElements(c);
+        setAllElements(getFilteredIncomings());
     }
 
     /*
      * @see org.argouml.uml.ui.UMLModelElementListModel2#isValidElement(Object)
      */
     protected boolean isValidElement(Object element) {
-        ArrayList c =
-            new ArrayList(Model.getFacade().getIncomings(getTarget()));
-        if (Model.getFacade().isAState(getTarget())) {
-            ArrayList i =
-                new ArrayList(
-                        Model.getFacade().getInternalTransitions(getTarget()));
-            c.removeAll(i);
-        }
-        return c.contains(element);
+        return getFilteredIncomings().contains(element);
     }
 }
+
