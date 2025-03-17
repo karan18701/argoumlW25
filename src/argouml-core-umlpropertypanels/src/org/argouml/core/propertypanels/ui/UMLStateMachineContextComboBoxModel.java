@@ -125,24 +125,32 @@ class UMLStateMachineContextComboBoxModel
          * Constructor for ActionSetCompositeStateConcurrent.
          */
         protected ActionSetContextStateMachine() {
-            super(Translator.localize("action.set"), null);
-            // Set the tooltip string:
-            putValue(Action.SHORT_DESCRIPTION, 
-                    Translator.localize("action.set"));
+            super(Translator.localize("action.statemachine.set"), null);
+            applyTooltip();
         }
 
-        /*
-         * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-         */
         public void actionPerformed(ActionEvent e) {
             super.actionPerformed(e);
-            UMLComboBox source = (UMLComboBox) e.getSource();
-            Object target = source.getTarget();
-            if (Model.getFacade().getContext(target)
-                    != source.getSelectedItem()) {
-                Model.getStateMachinesHelper().setContext(
-                        target, source.getSelectedItem());
+            UMLComboBox sourceCombo = (UMLComboBox) e.getSource();
+            Object targetObj = sourceCombo.getTarget();
+            Object selectedState = sourceCombo.getSelectedItem();
+            processStateChange(targetObj, selectedState);
+        }
+
+        private void processStateChange(Object target, Object newState) {
+            Object currentState = Model.getFacade().getContext(target);
+            if (!newState.equals(currentState)) {
+                applyStateContext(target, newState);
             }
         }
+
+        private void applyStateContext(Object target, Object state) {
+            Model.getStateMachinesHelper().setContext(target, state);
+        }
+
+        private void applyTooltip() {
+            putValue(Action.SHORT_DESCRIPTION, Translator.localize("tooltip.set.state"));
+        }
+
     }
 }

@@ -57,7 +57,7 @@ import org.argouml.ui.UndoableAction;
  * @author Michiel
  */
 class UMLActivityGraphContextComboBoxModel extends  UMLComboBoxModel {
-    
+
     /**
      * 
      */
@@ -130,24 +130,26 @@ class UMLActivityGraphContextComboBoxModel extends  UMLComboBoxModel {
          * Constructor for ActionSetCompositeStateConcurrent.
          */
         protected ActionSetContext() {
-            super(Translator.localize("action.set"), null);
-            // Set the tooltip string:
-            putValue(Action.SHORT_DESCRIPTION, 
-                    Translator.localize("action.set"));
+            super(Translator.localize("action.context.set"), null);
+            setTooltip("context");
         }
 
-        /*
-         * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-         */
-        public void actionPerformed(ActionEvent e) {
-            super.actionPerformed(e);
-            UMLComboBox source = (UMLComboBox) e.getSource();
-            Object target = source.getTarget();
-            if (Model.getFacade().getContext(target)
-                    != source.getSelectedItem()) {
-                Model.getStateMachinesHelper().setContext(
-                        target, source.getSelectedItem());
+        public void actionPerformed(ActionEvent event) {
+            super.actionPerformed(event);
+            UMLComboBox comboBox = (UMLComboBox) event.getSource();
+            Object selectedTarget = comboBox.getTarget();
+            if (!Model.getFacade().getContext(selectedTarget).equals(comboBox.getSelectedItem())) {
+                updateContext(selectedTarget, comboBox.getSelectedItem());
             }
         }
+
+        private void updateContext(Object target, Object newContext) {
+            Model.getStateMachinesHelper().setContext(target, newContext);
+        }
+
+        private void setTooltip(String contextType) {
+            putValue(Action.SHORT_DESCRIPTION, Translator.localize("tooltip.set." + contextType));
+        }
+
     }
 }
