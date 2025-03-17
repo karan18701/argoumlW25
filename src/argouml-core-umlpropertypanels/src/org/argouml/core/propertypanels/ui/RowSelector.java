@@ -792,29 +792,38 @@ class RowSelector extends UmlControl
             setEnabled(false);
         }
 
+
+                    private void updateRowState(ListSelectionEvent e, UmlHelper.Direction direction) {
+    final int index = getList().getSelectedIndex();
+    setEnabled(index > -1 && index < getModel().getSize() - 1);
+
+    if (direction != null) {
+        movedModelElement.setElement(getList().getSelectedValues()[0]);
+        assert (movedModelElement != null);
+        Model.getUmlHelper().move(
+                target,
+                movedModelElement.getElement(),
+                direction);
+    }
+}
+
         /**
          * Set the action as enabled when any row other then the last is selected
          * @param e the event
          */
         public void valueChanged(ListSelectionEvent e) {
-            final int index = getList().getSelectedIndex();
-            setEnabled(index > -1 && index < getModel().getSize() - 1);
-        }
+    updateRowState(e, null);
+}
 
         /***
          * Perform the action
          * @param e the event
          */
         @Override
-        public void actionPerformed(ActionEvent e) {
-            super.actionPerformed(e);
-            movedModelElement.setElement(getList().getSelectedValues()[0]);
-            assert (movedModelElement != null);
-            Model.getUmlHelper().move(
-                    target,
-                    movedModelElement.getElement(),
-                    UmlHelper.Direction.DOWN);
-        }
+public void actionPerformed(ActionEvent e) {
+    super.actionPerformed(e);
+    updateRowState(null, UmlHelper.Direction.DOWN);
+}
     }
 
 
