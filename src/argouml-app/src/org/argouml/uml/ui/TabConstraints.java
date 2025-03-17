@@ -698,39 +698,41 @@ public class TabConstraints extends AbstractArgoJPanel
             }
         }
 
-        protected void fireConstraintEvent(
-                int nIdx, Object mcOld, Object mcNew, boolean isDataChanged) {
-            // Guaranteed to return a non-null array
-            Object[] listeners = theMEllListeners.getListenerList();
+        private void fireConstraintEvent(
+        int nIdx,
+        Object mcOld,
+        Object mcNew,
+        boolean isDataChange) {
 
-            ConstraintChangeEvent cce = null;
+    Object[] listeners = theMEllListeners.getListenerList();
+    ConstraintChangeEvent cce = null;
 
-            // Process the listeners last to first, notifying those interested
-            for (int i = listeners.length - 2; i >= 0; i -= 2) {
-                if (listeners[i] == ConstraintChangeListener.class) {
-                    // Lazily create the event:
-                    if (cce == null) {
-                        cce = new ConstraintChangeEvent(
-                                this,
-                                nIdx,
-                                new CR(mcOld, nIdx),
-                                new CR(mcNew, nIdx));
-                    }
+    for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == ConstraintChangeListener.class) {
+            if (cce == null) {
+                cce = new ConstraintChangeEvent(
+                        this,
+                        nIdx,
+                        new CR(mcOld, nIdx),
+                        new CR(mcNew, nIdx));
+            }
 
-                    ConstraintChangeListener listener = (ConstraintChangeListener) listeners[i + 1];
-
-                    if (isDataChanged) {
-                        listener.constraintDataChanged(cce);
-                    } else {
-                        listener.constraintNameChanged(cce);
-                    }
-                }
+            if (isDataChange) {
+                ((ConstraintChangeListener) listeners[i + 1]).constraintDataChanged(cce);
+            } else {
+                ((ConstraintChangeListener) listeners[i + 1]).constraintNameChanged(cce);
             }
         }
+    }
+}
 
-        protected void fireConstraintDataChanged(int nIdx, Object mcOld, Object mcNew) {
-            fireConstraintEvent(nIdx, mcOld, mcNew, true);
-        }
+protected void fireConstraintDataChanged(
+    int nIdx,
+    Object mcOld,
+    Object mcNew) {
+
+fireConstraintEvent(nIdx, mcOld, mcNew, true);
+}
 
         protected void fireConstraintNameChanged(int nIdx, Object mcOld, Object mcNew) {
             fireConstraintEvent(nIdx, mcOld, mcNew, false);
