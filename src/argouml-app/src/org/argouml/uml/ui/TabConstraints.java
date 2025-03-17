@@ -698,7 +698,24 @@ public class TabConstraints extends AbstractArgoJPanel
             }
         }
 
-        private void fireConstraintEvent(
+
+        protected void fireConstraintDataChanged(
+        int nIdx,
+        Object mcOld,
+        Object mcNew) {
+
+    fireConstraintEvent(nIdx, mcOld, mcNew, true);
+}
+
+        protected void fireConstraintNameChanged(
+        int nIdx,
+        Object mcOld,
+        Object mcNew) {
+
+    fireConstraintEvent(nIdx, mcOld, mcNew, false);
+}
+
+	    private void fireConstraintEvent(
         int nIdx,
         Object mcOld,
         Object mcNew,
@@ -722,22 +739,10 @@ public class TabConstraints extends AbstractArgoJPanel
             } else {
                 ((ConstraintChangeListener) listeners[i + 1]).constraintNameChanged(cce);
             }
+
         }
     }
 }
-
-protected void fireConstraintDataChanged(
-    int nIdx,
-    Object mcOld,
-    Object mcNew) {
-
-fireConstraintEvent(nIdx, mcOld, mcNew, true);
-}
-
-        protected void fireConstraintNameChanged(int nIdx, Object mcOld, Object mcNew) {
-            fireConstraintEvent(nIdx, mcOld, mcNew, false);
-        }
-    }
 
     /*
      * @see org.argouml.ui.targetmanager.TargetListener#targetAdded(
