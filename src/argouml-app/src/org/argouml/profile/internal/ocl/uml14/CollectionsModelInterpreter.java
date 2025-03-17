@@ -161,28 +161,7 @@ public class CollectionsModelInterpreter implements ModelInterpreter {
 
                     return res;
                 } else if (feature.toString().trim().equals("exists")) {
-                    List<String> vars = (ArrayList<String>) parameters[0];
-                    Object exp = parameters[1];
-                    LambdaEvaluator eval = (LambdaEvaluator) parameters[2];
-
-                    Collection col = (Collection) subject;
-
-                    // TODO is it possible to use more than one variable?
-                    String varName = vars.get(0);
-                    Object oldVal = vt.get(varName);
-
-                    for (Object object : col) {
-                        vt.put(varName, object);
-
-                        Object val = eval.evaluate(vt, exp);
-                        if (val instanceof Boolean && (Boolean) val) {
-                            return true;
-                        }
-                    }
-
-                    vt.put(varName, oldVal);
-
-                    return false;
+                    return evaluateCollectionFeature(vt, (Collection) subject, (List<String>) parameters[0], parameters[1], (LambdaEvaluator) parameters[2], false);
                 } else if (feature.toString().trim().equals("isUnique")) {
                     List<String> vars = (ArrayList<String>) parameters[0];
                     Object exp = parameters[1];
@@ -238,28 +217,7 @@ public class CollectionsModelInterpreter implements ModelInterpreter {
 
                     return found;
                 } else if (feature.toString().trim().equals("any")) {
-                    List<String> vars = (ArrayList<String>) parameters[0];
-                    Object exp = parameters[1];
-                    LambdaEvaluator eval = (LambdaEvaluator) parameters[2];
-
-                    Collection col = (Collection) subject;
-
-                    // TODO is it possible to use more than one variable?
-                    String varName = vars.get(0);
-                    Object oldVal = vt.get(varName);
-
-                    for (Object object : col) {
-                        vt.put(varName, object);
-
-                        Object val = eval.evaluate(vt, exp);
-                        if (val instanceof Boolean && (Boolean) val) {
-                            return object;
-                        }
-                    }
-
-                    vt.put(varName, oldVal);
-
-                    return null;
+                    return evaluateCollectionFeature(vt, (Collection) subject, (List<String>) parameters[0], parameters[1], (LambdaEvaluator) parameters[2], true);
                 }
 
                 // TODO implement iterate()
@@ -267,6 +225,8 @@ public class CollectionsModelInterpreter implements ModelInterpreter {
                 // TODO implement subSequence()
             }
         }
+
+
 
         // these operations are ok for lists too
         if (subject instanceof Collection) {
@@ -448,6 +408,24 @@ public class CollectionsModelInterpreter implements ModelInterpreter {
 
         return null;
     }
+
+    private Object evaluateCollectionFeature(Map<String, Object> vt, Collection col, List<String> vars, Object exp, LambdaEvaluator eval, boolean returnObject) {
+        String varName = vars.get(0);
+        Object oldVal = vt.get(varName);
+
+        for (Object object : col) {
+            vt.put(varName, object);
+            Object val = eval.evaluate(vt, exp);
+            if (val instanceof Boolean && (Boolean) val) {
+                vt.put(varName, oldVal);
+                return returnObject ? object : true;
+            }
+        }
+
+        vt.put(varName, oldVal);
+        return returnObject ? null : false;
+    }
+
 
     private boolean doForAll(Map<String, Object> vt, Collection collection,
             List<String> vars, Object exp, LambdaEvaluator eval) {
