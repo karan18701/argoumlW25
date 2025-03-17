@@ -134,7 +134,7 @@ public abstract class AbstractArgoJPanel extends JPanel
      */
     // TODO: Review all callers to make sure that they localize the title
     // In process by Harold Braun 20070912
-    public AbstractArgoJPanel(String theTitle, boolean t) {
+    protected AbstractArgoJPanel(String theTitle, boolean t) {
         setTitle(theTitle);
         tear = t;
     }

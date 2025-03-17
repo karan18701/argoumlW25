@@ -96,10 +96,10 @@ public class FigConcurrentRegion extends FigState
 
     private void initialize() {
         cover =
-            new FigRect(getInitialX(),
-                getInitialY(),
-                getInitialWidth(), getInitialHeight(),
-                INVISIBLE_LINE_COLOR, FILL_COLOR);
+                new FigRect(getInitialX(),
+                        getInitialY(),
+                        getInitialWidth(), getInitialHeight(),
+                        INVISIBLE_LINE_COLOR, FILL_COLOR);
         dividerline = new FigLine(getInitialX(),
                 getInitialY(),
                 getInitialWidth(),
@@ -121,7 +121,7 @@ public class FigConcurrentRegion extends FigState
 
     /**
      * Construct a new concurrent region fig.
-     * 
+     *
      * @param node owning UML element
      * @param bounds position and size
      * @param settings render settings
@@ -131,21 +131,21 @@ public class FigConcurrentRegion extends FigState
         super(node, bounds, settings);
         initialize();
         if (bounds != null) {
-            /* We have to use the specific methods written for this Fig: 
+            /* We have to use the specific methods written for this Fig:
              * This fixes issue 5070. */
-            setBounds(bounds.x - _x, bounds.y - _y, bounds.width, 
+            setBounds(bounds.x - _x, bounds.y - _y, bounds.width,
                     bounds.height - _h, true);
         }
         updateNameText();
     }
 
     /**
-     * The moment we add this fig to a layer, 
+     * The moment we add this fig to a layer,
      * especially during load,
-     * it needs to be made aware that it 
+     * it needs to be made aware that it
      * is enclosed by a FigCompositeState.
      * This fixes issue 3736.
-     * 
+     *
      * @param lay the layer
      * @see org.argouml.uml.diagram.ui.FigNodeModelElement#setLayer(org.tigris.gef.base.Layer)
      */
@@ -154,7 +154,7 @@ public class FigConcurrentRegion extends FigState
         super.setLayer(lay);
         for (Fig f : lay.getContents()) {
             if (f instanceof FigCompositeState) {
-                if (f.getOwner() 
+                if (f.getOwner()
                         == Model.getFacade().getContainer(getOwner())) {
                     setEnclosingFig(f);
                     break; // there can only be one
@@ -162,7 +162,7 @@ public class FigConcurrentRegion extends FigState
             }
         }
     }
-    
+
     /*
      * @see java.lang.Object#clone()
      */
@@ -278,8 +278,8 @@ public class FigConcurrentRegion extends FigState
             } else {
                 int hIncrement = oldBounds.height - h;
                 FigConcurrentRegion adjacentFig =
-                    ((FigConcurrentRegion)
-                        regionsList.get(adjacentindex));
+                        ((FigConcurrentRegion)
+                                regionsList.get(adjacentindex));
                 if ((adjacentFig.getBounds().height + hIncrement)
                         <= adjacentFig.getMinimumSize().height) {
                     y = oldBounds.y;
@@ -287,12 +287,12 @@ public class FigConcurrentRegion extends FigState
                 } else {
                     if ((curHandle.index == 0) || (curHandle.index == 2)) {
                         ((FigConcurrentRegion) regionsList.
-                            get(adjacentindex)).setBounds(0, hIncrement);
+                                get(adjacentindex)).setBounds(0, hIncrement);
                     }
                     if ((curHandle.index == 5) || (curHandle.index == 7)) {
                         ((FigConcurrentRegion) regionsList.
-                            get(adjacentindex)).setBounds(-hIncrement,
-                                    hIncrement);
+                                get(adjacentindex)).setBounds(-hIncrement,
+                                hIncrement);
                     }
                 }
             }
@@ -315,7 +315,18 @@ public class FigConcurrentRegion extends FigState
         updateEdges();
         firePropChange("bounds", oldBounds, getBounds());
     }
+    private void updateBoundsAndEdges(int x, int y, int w, int h, Rectangle oldBounds) {
+        dividerline.setShape(x, y, x + w, y);
+        getNameFig().setBounds(x + 2, y + 2, w - 4, getNameFig().getMinimumSize().height);
+        getInternal().setBounds(x + 2, y + getNameFig().getMinimumSize().height + 4,
+                w - 4, h - getNameFig().getMinimumSize().height - 8);
+        getBigPort().setBounds(x, y, w, h);
+        cover.setBounds(x, y, w, h);
 
+        calcBounds();
+        updateEdges();
+        firePropChange("bounds", oldBounds, getBounds());
+    }
     /**
      * To resize with X and Y increments, absolute width and keeping the height.
      * @param xInc the x increment
@@ -333,16 +344,8 @@ public class FigConcurrentRegion extends FigState
         int y = oldBounds.y + yInc;
         int h = oldBounds.height;
 
-        dividerline.setShape(x, y, x + w , y);
-        getNameFig().setBounds(x + 2, y + 2, w - 4, nameDim.height);
-        getInternal().setBounds(x + 2, y + nameDim.height + 4,
-                w - 4, h - nameDim.height - 8);
-        getBigPort().setBounds(x, y, w, h);
-        cover.setBounds(x, y, w, h);
+        updateBoundsAndEdges(x, y, w, h, oldBounds);
 
-        calcBounds(); //_x = x; _y = y; _w = w; _h = h;
-        updateEdges();
-        firePropChange("bounds", oldBounds, getBounds());
     }
 
     /**
@@ -356,7 +359,7 @@ public class FigConcurrentRegion extends FigState
      * @param hInc the height increment
      */
     public void setBounds(int xInc, int yInc, int w, int hInc,
-            boolean concurrency) {
+                          boolean concurrency) {
         if (getNameFig() == null) {
             return;
         }
@@ -397,26 +400,18 @@ public class FigConcurrentRegion extends FigState
         int w = oldBounds.width;
         int h = oldBounds.height + hInc;
 
-        dividerline.setShape(x, y, x + w , y);
-        getNameFig().setBounds(x + 2, y + 2, w - 4, nameDim.height);
-        getInternal().setBounds(x + 2, y + nameDim.height + 4,
-                w - 4, h - nameDim.height - 8);
-        getBigPort().setBounds(x, y, w, h);
-        cover.setBounds(x, y, w, h);
+        updateBoundsAndEdges(x, y, w, h, oldBounds);
 
-        calcBounds(); //_x = x; _y = y; _w = w; _h = h;
-        updateEdges();
-        firePropChange("bounds", oldBounds, getBounds());
     }
 
     ////////////////////////////////////////////////////////////////
     // fig accessors
 
     /*
-     * This function only sets the color of the divider line 
-     * (since that is the only visible part), and can be used to make 
+     * This function only sets the color of the divider line
+     * (since that is the only visible part), and can be used to make
      * the divider line invisible for the top region in a composite state.
-     * 
+     *
      * @see org.tigris.gef.presentation.Fig#setLineColor(java.awt.Color)
      */
     @Override
@@ -484,8 +479,8 @@ public class FigConcurrentRegion extends FigState
     // event processing
 
     protected void modelChanged(PropertyChangeEvent mee) {
-        // TODO: Rather than specifically ignore some item 
-        // maybe it would be better to specifically state 
+        // TODO: Rather than specifically ignore some item
+        // maybe it would be better to specifically state
         // what items are of interest. Otherwise we may still
         // be acting on other events we don't need
         if (!Model.getFacade().isATransition(mee.getNewValue())
@@ -495,7 +490,7 @@ public class FigConcurrentRegion extends FigState
             super.modelChanged(mee);
         }
     }
-    
+
     /*
      * @see org.tigris.gef.presentation.Fig#makeSelection()
      */
@@ -547,7 +542,7 @@ public class FigConcurrentRegion extends FigState
 
     @Override
     protected void updateLayout(UmlChangeEvent event) {
-        if (!"container".equals(event.getPropertyName()) 
+        if (!"container".equals(event.getPropertyName())
                 && !"isConcurrent".equals(event.getPropertyName())) {
             super.updateLayout(event);
         }

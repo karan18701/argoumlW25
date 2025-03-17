@@ -698,6 +698,7 @@ public class TabConstraints extends AbstractArgoJPanel
             }
         }
 
+
         protected void fireConstraintDataChanged(
         int nIdx,
         Object mcOld,
@@ -738,6 +739,7 @@ public class TabConstraints extends AbstractArgoJPanel
             } else {
                 ((ConstraintChangeListener) listeners[i + 1]).constraintNameChanged(cce);
             }
+
         }
     }
 }
