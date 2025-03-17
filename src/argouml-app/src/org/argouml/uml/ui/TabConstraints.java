@@ -699,61 +699,48 @@ public class TabConstraints extends AbstractArgoJPanel
         }
 
         protected void fireConstraintDataChanged(
-                         int nIdx,
-                         Object mcOld,
-                         Object mcNew) {
-            // Guaranteed to return a non-null array
-            Object[] listeners = theMEllListeners.getListenerList();
+        int nIdx,
+        Object mcOld,
+        Object mcNew) {
 
-            ConstraintChangeEvent cce = null;
-
-            // Process the listeners last to first, notifying
-            // those that are interested in this event
-            for (int i = listeners.length - 2; i >= 0; i -= 2) {
-                if (listeners[i] == ConstraintChangeListener.class) {
-                    // Lazily create the event:
-                    if (cce == null) {
-                        cce = new ConstraintChangeEvent(
-                            this,
-                            nIdx,
-                            new CR(mcOld, nIdx),
-                            new CR(mcNew, nIdx));
-                    }
-
-                    ((ConstraintChangeListener) listeners[i + 1])
-                        .constraintDataChanged(cce);
-                }
-            }
-        }
+    fireConstraintEvent(nIdx, mcOld, mcNew, true);
+}
 
         protected void fireConstraintNameChanged(
-                         int nIdx,
-                         Object mcOld,
-                         Object mcNew) {
-            // Guaranteed to return a non-null array
-            Object[] listeners = theMEllListeners.getListenerList();
+        int nIdx,
+        Object mcOld,
+        Object mcNew) {
 
-            ConstraintChangeEvent cce = null;
+    fireConstraintEvent(nIdx, mcOld, mcNew, false);
+}
 
-            // Process the listeners last to first, notifying
-            // those that are interested in this event
-            for (int i = listeners.length - 2; i >= 0; i -= 2) {
-                if (listeners[i] == ConstraintChangeListener.class) {
-                    // Lazily create the event:
-                    if (cce == null) {
-                        cce = new ConstraintChangeEvent(
-                            this,
-                            nIdx,
-                            new CR(mcOld, nIdx),
-                            new CR(mcNew, nIdx));
-                    }
+	    private void fireConstraintEvent(
+        int nIdx,
+        Object mcOld,
+        Object mcNew,
+        boolean isDataChange) {
 
-                    ((ConstraintChangeListener) listeners[i + 1])
-                        .constraintNameChanged(cce);
-                }
+    Object[] listeners = theMEllListeners.getListenerList();
+    ConstraintChangeEvent cce = null;
+
+    for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == ConstraintChangeListener.class) {
+            if (cce == null) {
+                cce = new ConstraintChangeEvent(
+                        this,
+                        nIdx,
+                        new CR(mcOld, nIdx),
+                        new CR(mcNew, nIdx));
+            }
+
+            if (isDataChange) {
+                ((ConstraintChangeListener) listeners[i + 1]).constraintDataChanged(cce);
+            } else {
+                ((ConstraintChangeListener) listeners[i + 1]).constraintNameChanged(cce);
             }
         }
     }
+}
 
     /*
      * @see org.argouml.ui.targetmanager.TargetListener#targetAdded(
