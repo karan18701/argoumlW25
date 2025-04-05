@@ -213,6 +213,21 @@ public class TabConstraints extends AbstractArgoJPanel
         }
     }
 
+    @java.lang.Override
+    public void targetSet(TargetEvent e) {
+
+    }
+
+    @java.lang.Override
+    public void targetRemoved(TargetEvent e) {
+
+    }
+
+    @java.lang.Override
+    public void targetAdded(TargetEvent e) {
+
+    }
+
     /**
      * Adapter to provide information and a manipulation interface for a
      * target element's set of constraints to the constraint editor.
