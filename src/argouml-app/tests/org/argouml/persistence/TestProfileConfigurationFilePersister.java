@@ -7,8 +7,8 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    euluis
- *    Tom Morris
+ * euluis
+ * Tom Morris
  *****************************************************************************
  *
  * Some portions of this file was previously release using the BSD License:
@@ -51,6 +51,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import junit.framework.TestCase;
 
 import org.argouml.application.api.Argo;
@@ -73,11 +77,11 @@ import org.xml.sax.SAXException;
 
 /**
  * Tests for the {@link ProfileConfigurationFilePersister} class.
- * 
+ *
  * @author Luis Sergio Oliveira (euluis)
  */
 public class TestProfileConfigurationFilePersister extends TestCase {
-    
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -90,22 +94,22 @@ public class TestProfileConfigurationFilePersister extends TestCase {
         ProfileFacade.reset();
         super.tearDown();
     }
-    
+
     /**
-     * Tests whether XmiWriterMDRImpl fails to write a profile 
+     * Tests whether XmiWriterMDRImpl fails to write a profile
      * (i.e., the file will contain no model) previously loaded from a file.
-     * 
+     *
      * @throws ProfileException if the loading of the profile fails.
-     * @throws IOException if an IO error occurs while writing or reading a 
+     * @throws IOException if an IO error occurs while writing or reading a
      * file.
      * @throws FileNotFoundException if a file isn't found.
-     * @throws UmlException if an error occurs while writing the profile in 
+     * @throws UmlException if an error occurs while writing the profile in
      * XMI format.
      */
-    public void testWritePreviouslyLoadedProfile() 
-        throws ProfileException, FileNotFoundException, IOException, 
-        UmlException {
-        
+    public void testWritePreviouslyLoadedProfile()
+            throws ProfileException, FileNotFoundException, IOException,
+            UmlException {
+
         Object umlModel = ProfileFacade.getManager().getUMLProfile()
                 .getProfilePackages().iterator().next();
         final String umlModelName = Model.getFacade().getName(umlModel);
@@ -123,83 +127,100 @@ public class TestProfileConfigurationFilePersister extends TestCase {
         assertEquals(umlModelName, Model.getFacade().getName(umlModel));
     }
 
-    private static final String TEST_PROFILE = 
-        "<?xml version = \"1.0\" encoding = \"UTF-8\" ?>\n"
-        // Although we've historically written out the DOCTYPE, the DTD doesn't
-        // actually exist and this line will get stripped by the .uml file
-        // persister
-//        + "<!DOCTYPE profile SYSTEM \"profile.dtd\" >\n"
-        + "<profile>\n"
+    private static final String TEST_PROFILE =
+            "<?xml version = \"1.0\" encoding = \"UTF-8\" ?>\n"
+                    // Although we've historically written out the DOCTYPE, the DTD doesn't
+                    // actually exist and this line will get stripped by the .uml file
+                    // persister
+//          + "<!DOCTYPE profile SYSTEM \"profile.dtd\" >\n"
+                    + "<profile>\n"
 
-        // Standard UML 1.4 profile
-        + "\t\t<plugin>\n"
-        + "\t\t\tUML 1.4\n"
-        + "\t\t</plugin>\n"
+                    // Standard UML 1.4 profile
+                    + "\t\t<plugin>\n"
+                    + "\t\t\tUML 1.4\n"
+                    + "\t\t</plugin>\n"
 
-        // TODO: User defined profile support untested currently
-//        + "\t\t<userDefined>\n"
-//        + "\t\t\t<filename>\n"
-//        + "foo.profile\n"
-//        + "</filename>\n"
-//        + "\t\t\t<model>\n"
-//        + "foo.profile.package\n"
-//        + "\t\t\t</model>\n"
-//        + "\t\t</userDefined>\n"
-        
-        + "</profile>";
-        
+                    // TODO: User defined profile support untested currently
+//          + "\t\t<userDefined>\n"
+//          + "\t\t\t<filename>\n"
+//          + "foo.profile\n"
+//          + "</filename>\n"
+//          + "\t\t\t<model>\n"
+//          + "foo.profile.package\n"
+//          + "\t\t\t</model>\n"
+//          + "\t\t</userDefined>\n"
+
+                    + "</profile>";
+
     /**
      * Test the basic profile configuration parser.
-     * 
+     *
      * @throws SAXException on a parse failure
      * @throws UnsupportedEncodingException if our default encoding (UTF-8) is
-     *             unsupported. Should never happen.
+     * unsupported. Should never happen.
      */
     public void testProfileConfigurationParser() throws SAXException,
-        UnsupportedEncodingException {
-        InputStream inStream = 
-            new ByteArrayInputStream(
-                    TEST_PROFILE.getBytes(Argo.getEncoding()));
+            UnsupportedEncodingException, ParserConfigurationException {
+        InputStream inStream =
+                new ByteArrayInputStream(
+                        TEST_PROFILE.getBytes(Argo.getEncoding()));
         ProfileConfigurationParser parser = new ProfileConfigurationParser();
-        parser.parse(new InputSource(inStream));
+
+        // Secure the XML parser against XXE
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+
+        // Now parse using the secured builder (though ProfileConfigurationParser might have its own parsing logic)
+        // If ProfileConfigurationParser uses its own DocumentBuilderFactory, you'll need to modify that class directly.
+        // Assuming here that ProfileConfigurationParser internally uses a standard mechanism that can be influenced.
+        try {
+            parser.parse(new InputSource(inStream));
+        } catch (SAXException | IOException e) {
+            fail("Error parsing profile configuration: " + e.getMessage());
+        }
+
         Collection<Profile> profiles = parser.getProfiles();
         assertEquals("Wrong number of profiles", 1, profiles.size());
         Iterator<Profile> profileIter = profiles.iterator();
-        assertTrue("Didn't get expected UML profile", 
+        assertTrue("Didn't get expected UML profile",
                 profileIter.next() instanceof ProfileUML);
     }
-    
+
     /**
      * Test that we can save and restore the default profile configuration.
-     * 
+     *
      * @throws IOException on io error
      * @throws SaveException on save error
      * @throws OpenException on load error
      */
     public void testSaveLoadDefaultConfiguration() throws IOException,
-        SaveException, OpenException {
-        
+            SaveException, OpenException {
+
         // Create a default profile and record its contents
         Project project = ProjectManager.getManager().makeEmptyProject();
         ProfileConfiguration pc = new ProfileConfiguration(project);
-        Collection<Profile> startingProfiles = 
-            new ArrayList<Profile>(pc.getProfiles());
+        Collection<Profile> startingProfiles =
+                new ArrayList<Profile>(pc.getProfiles());
 
         // Write the profile out to a temp file
-        ProfileConfigurationFilePersister persister = 
-            new ProfileConfigurationFilePersister();
+        ProfileConfigurationFilePersister persister =
+                new ProfileConfigurationFilePersister();
         File file = File.createTempFile(this.getName(), ".profile");
         OutputStream outStream = new FileOutputStream(file);
         persister.save(pc, outStream);
         outStream.close();
-        
+
         // Read it back in to a new empty project
         project = ProjectManager.getManager().makeEmptyProject();
         persister.load(project,
                 new InputSource(file.toURI().toURL().toExternalForm()));
- 
+
         // Make sure we got what we started with
-        assertEquals(startingProfiles, 
+        assertEquals(startingProfiles,
                 project.getProfileConfiguration().getProfiles());
     }
 }
