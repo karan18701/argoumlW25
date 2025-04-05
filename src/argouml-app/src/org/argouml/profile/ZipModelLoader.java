@@ -51,19 +51,18 @@ import java.util.zip.ZipInputStream;
 
 /**
  * Loads model data from a Zip file.
- *
- * @author maurelio1234
  */
 public class ZipModelLoader extends StreamModelLoader {
 
-    private static final Logger LOG =
-        Logger.getLogger(ZipModelLoader.class.getName());
+    private static final Logger LOG = Logger.getLogger(ZipModelLoader.class.getName());
 
+    private static final int MAX_ENTRIES = 1000;
+    private static final long MAX_TOTAL_UNCOMPRESSED_SIZE = 500L * 1024 * 1024; // 500 MB
+    private static final long MAX_ENTRY_UNCOMPRESSED_SIZE = 100L * 1024 * 1024; // 100 MB
+    private static final double MAX_COMPRESSION_RATIO = 100.0;
 
-    public Collection loadModel(ProfileReference reference)
-        throws ProfileException {
-        LOG.log(Level.INFO,
-                "Loading profile from ZIP {0}", reference.getPath());
+    public Collection loadModel(ProfileReference reference) throws ProfileException {
+        LOG.log(Level.INFO, "Loading profile from ZIP {0}", reference.getPath());
 
         if (!reference.getPath().endsWith("zip")) {
             throw new ProfileException("Profile could not be loaded!");
@@ -71,31 +70,21 @@ public class ZipModelLoader extends StreamModelLoader {
 
         InputStream is = null;
         File modelFile = new File(reference.getPath());
-        // TODO: This is in the wrong place.  It's not profile specific.
-        // It needs to be moved to main XMI reading code. - tfm 20060326
         String filename = modelFile.getName();
-        String extension = filename.substring(filename.indexOf('.'),
-                filename.lastIndexOf('.'));
+        String extension = filename.substring(filename.indexOf('.'), filename.lastIndexOf('.'));
         String path = modelFile.getParent();
-        // Add the path of the model to the search path, so we can
-        // read dependent models
+
         if (path != null) {
-            System.setProperty("org.argouml.model.modules_search_path",
-                    path);
+            System.setProperty("org.argouml.model.modules_search_path", path);
         }
+
         try {
             is = openZipStreamAt(modelFile.toURI().toURL(), extension);
         } catch (MalformedURLException e) {
-            LOG.log(Level.SEVERE,
-                    "Exception while loading profile '"
-                    + reference.getPath() + "'",
-                    e);
+            LOG.log(Level.SEVERE, "Exception while loading profile '" + reference.getPath() + "'", e);
             throw new ProfileException(e);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE,
-                    "Exception while loading profile '"
-                    + reference.getPath() + "'",
-                    e);
+            LOG.log(Level.SEVERE, "Exception while loading profile '" + reference.getPath() + "'", e);
             throw new ProfileException(e);
         }
 
@@ -107,27 +96,51 @@ public class ZipModelLoader extends StreamModelLoader {
     }
 
     /**
-     * Open a ZipInputStream to the first file found with a given extension.
-     *
-     * TODO: Remove since this is a duplicate of ZipFilePersister method
-     * when we have refactored the Persister subsystem.
-     *
-     * @param url
-     *            The URL of the zip file.
-     * @param ext
-     *            The required extension.
-     * @return the zip stream positioned at the required location.
-     * @throws IOException
-     *             if there is a problem opening the file.
+     * Securely opens a ZipInputStream and finds an entry with the given extension.
+     * Prevents zip bomb vulnerabilities.
      */
-    private ZipInputStream openZipStreamAt(URL url, String ext)
-        throws IOException {
+    private ZipInputStream openZipStreamAt(URL url, String ext) throws IOException {
         ZipInputStream zis = new ZipInputStream(url.openStream());
-        ZipEntry entry = zis.getNextEntry();
-        while (entry != null && !entry.getName().endsWith(ext)) {
-            entry = zis.getNextEntry();
-        }
-        return zis;
-    }
+        ZipEntry entry;
+        int entryCount = 0;
+        long totalUncompressedSize = 0;
 
+        while ((entry = zis.getNextEntry()) != null) {
+            entryCount++;
+            if (entryCount > MAX_ENTRIES) {
+                throw new IOException("Too many entries in ZIP file — possible zip bomb.");
+            }
+
+            // Path validation (Zip Slip)
+            String entryName = entry.getName();
+            if (entryName.contains("..") || entryName.startsWith("/") || entryName.startsWith("\\")) {
+                throw new IOException("Invalid entry path — possible zip slip: " + entryName);
+            }
+
+            long uncompressedSize = entry.getSize();
+            long compressedSize = entry.getCompressedSize();
+
+            if (uncompressedSize > MAX_ENTRY_UNCOMPRESSED_SIZE) {
+                throw new IOException("ZIP entry too large — possible zip bomb.");
+            }
+
+            if (uncompressedSize > 0 && compressedSize > 0) {
+                double ratio = (double) uncompressedSize / compressedSize;
+                if (ratio > MAX_COMPRESSION_RATIO) {
+                    throw new IOException("Suspicious compression ratio — possible zip bomb.");
+                }
+            }
+
+            totalUncompressedSize += uncompressedSize > 0 ? uncompressedSize : 0;
+            if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+                throw new IOException("Total uncompressed size too large — possible zip bomb.");
+            }
+
+            if (entryName.endsWith(ext)) {
+                return zis; // return stream positioned at this entry
+            }
+        }
+
+        return null; // if no valid entry found
+    }
 }
