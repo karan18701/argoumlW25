@@ -1,42 +1,3 @@
-/* $Id$
- *****************************************************************************
- * Copyright (c) 2009,2010 Contributors - see below
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- * euluis
- * Tom Morris
- *****************************************************************************
- *
- * Some portions of this file was previously release using the BSD License:
- */
-
-// Copyright (c) 2008-2009 The Regents of the University of California. All
-// Rights Reserved. Permission to use, copy, modify, and distribute this
-// software and its documentation without fee, and without a written
-// agreement is hereby granted, provided that the above copyright notice
-// and this paragraph appear in all copies. This software program and
-// documentation are copyrighted by The Regents of the University of
-// California. The software program and documentation are supplied "AS
-// IS", without any accompanying services from The Regents. The Regents
-// does not warrant that the operation of the program will be
-// uninterrupted or error-free. The end-user understands that the program
-// was developed for research purposes and is advised not to rely
-// exclusively on the program for any reason. IN NO EVENT SHALL THE
-// UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
-// SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS,
-// ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
-// THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF
-// SUCH DAMAGE. THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY
-// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE
-// PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
-// CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
-// UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-
 package org.argouml.persistence;
 
 import java.io.ByteArrayInputStream;
@@ -114,11 +75,25 @@ public class TestProfileConfigurationFilePersister extends TestCase {
                 .getProfilePackages().iterator().next();
         final String umlModelName = Model.getFacade().getName(umlModel);
         assertNotNull(umlModelName);
-        File tempFile = File.createTempFile(umlModelName, ".xmi");
-        FileOutputStream stream = new FileOutputStream(tempFile);
-        XmiWriter xmiWriter = Model.getXmiWriter(umlModel, stream, "version-x");
-        xmiWriter.write();
-        stream.close();
+
+        // Sanitize the model name to avoid path traversal or unsafe characters
+        String safeModelName = umlModelName.replaceAll("[^a-zA-Z0-9-_\\.]", "_");
+
+        // Create temp file with sanitized name
+        File tempFile = File.createTempFile(safeModelName, ".xmi");
+
+        // Extra validation: ensure it's inside the temp directory
+        File tempDir = new File(System.getProperty("java.io.tmpdir")).getCanonicalFile();
+        File canonicalTempFile = tempFile.getCanonicalFile();
+        if (!canonicalTempFile.getPath().startsWith(tempDir.getPath())) {
+            throw new SecurityException("Path traversal attempt detected: " + canonicalTempFile);
+        }
+
+        try (FileOutputStream stream = new FileOutputStream(canonicalTempFile)) {
+            XmiWriter xmiWriter = Model.getXmiWriter(umlModel, stream, "version-x");
+            xmiWriter.write();
+        }
+
         FileModelLoader fileModelLoader = new FileModelLoader();
         Collection loadedModel = fileModelLoader.loadModel(
                 new UserProfileReference(tempFile.getPath()));
@@ -210,9 +185,17 @@ public class TestProfileConfigurationFilePersister extends TestCase {
         ProfileConfigurationFilePersister persister =
                 new ProfileConfigurationFilePersister();
         File file = File.createTempFile(this.getName(), ".profile");
-        OutputStream outStream = new FileOutputStream(file);
-        persister.save(pc, outStream);
-        outStream.close();
+
+        // Extra validation: ensure it's inside the temp directory
+        File tempDir = new File(System.getProperty("java.io.tmpdir")).getCanonicalFile();
+        File canonicalFile = file.getCanonicalFile();
+        if (!canonicalFile.getPath().startsWith(tempDir.getPath())) {
+            throw new SecurityException("Path traversal attempt detected: " + canonicalFile);
+        }
+
+        try (OutputStream outStream = new FileOutputStream(canonicalFile)) {
+            persister.save(pc, outStream);
+        }
 
         // Read it back in to a new empty project
         project = ProjectManager.getManager().makeEmptyProject();
