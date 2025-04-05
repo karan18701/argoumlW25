@@ -206,7 +206,7 @@ public class TabConstraints extends AbstractArgoJPanel
         }
     }
 
-    private void setTargetInternal(Object oTarget) {
+    private static void setTargetInternal(Object oTarget) {
         // Set editor's model
         if (oTarget != null) {
             mOcleEditor.setModel(new ConstraintModel(oTarget));
